@@ -1,0 +1,53 @@
+#!/bin/bash
+
+distro=$(lsb_release -cs)
+isInstalled=$(which runOpenvpn3)
+
+if [ -z "$isInstalled" ]
+then
+      echo "Script is not installed on path, installing..."
+      sudo ln -s $PWD/runOpenvpn3 /usr/local/bin/runOpenvpn3
+      echo "Done."
+      exit 1
+fi
+
+if [ "$1" == "-h" ]
+then
+      echo "Usage: vpn.sh <path to .ovpn file>"
+      echo 
+      echo "  Example: vpn.sh /home/user/config.ovpn"
+      echo "  To install openvpn3, run: vpn.sh -install"
+      exit 1
+elif [ -z "$1" ]
+then
+      echo "Missing config file."
+      echo "run: runOpenvpn3 -h for help."
+      exit 1
+elif [ "$1" == "-install" ]
+then
+      echo "Starting openvpn3 installation..."
+      sudo apt install apt-transport-https
+      sudo wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub
+      sudo apt-key add openvpn-repo-pkg-key.pub
+      sudo wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-$($distro).list
+      sudo apt update
+      sudo apt install openvpn3
+      echo "Done."
+      exit 1
+else
+      echo "Starting VPN with config file $1..."
+fi
+
+alreadyExists=$(openvpn3 configs-list | grep $1)
+
+if [ -z "$alreadyExists" ]
+then
+      echo "Config file not found in openvpn3. Importing..."
+      configPath=$(openvpn3 config-import --config $1 --persistent)
+      output=$(echo $configPath | awk '{print $NF}')
+else
+      echo "Config file already exists in openvpn3. Skipping import..."
+      output=$(openvpn3 configs-list | grep -B 2 $1 | head -n 1  | awk '{print $1}')
+fi
+
+openvpn3 session-start --config-path $output
