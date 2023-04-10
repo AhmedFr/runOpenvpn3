@@ -13,10 +13,9 @@ fi
 
 if [ "$1" == "-h" ]
 then
-      echo "Usage: vpn.sh <path to .ovpn file>"
-      echo 
-      echo "  Example: vpn.sh /home/user/config.ovpn"
-      echo "  To install openvpn3, run: vpn.sh -install"
+      echo $'Usage: \n'
+      echo $'      runOpenvpn3 <path to .ovpn file>\n'
+      echo "      runOpenvpn3 -install: installs openvpn3 on your machine"
       exit 1
 elif [ -z "$1" ]
 then
