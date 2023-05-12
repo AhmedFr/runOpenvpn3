@@ -17,12 +17,30 @@ then
       echo $'      runOpenvpn3 <path to .ovpn file>\n'
       echo "      runOpenvpn3 -install: installs openvpn3 on your machine"
       exit 1
-elif [ -z "$1" ]
+fi
+
+
+if [ "$1" == "-disconnect" ]
+then
+    sessionPath=$(openvpn3 sessions-list | grep 'Path:' | awk '{print $NF}')
+    if [ -z "$sessionPath" ]
+    then
+          echo "No session is currently running."
+    else
+          echo "Ending session..."
+            openvpn3 session-manage --disconnect --session-path $sessionPath
+    fi
+    exit 1
+fi
+
+if [ -z "$1" ]
 then
       echo "Missing config file."
       echo "run: runOpenvpn3 -h for help."
       exit 1
-elif [ "$1" == "-install" ]
+fi
+
+if [ "$1" == "-install" ]
 then
       echo "Starting openvpn3 installation..."
       sudo apt install apt-transport-https
@@ -33,10 +51,10 @@ then
       sudo apt install openvpn3
       echo "Done."
       exit 1
-else
-      echo "Starting VPN with config file $1..."
 fi
 
+
+echo "Starting VPN with config file $1..."
 alreadyExists=$(openvpn3 configs-list | grep $1)
 
 if [ -z "$alreadyExists" ]
